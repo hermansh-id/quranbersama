@@ -1,11 +1,11 @@
 import { ChevronLeft, ChevronRight, Play, Pause, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Verse, PlaybackState, Theme } from "@/types/quran"
+import { Ayah, PlaybackState, Theme } from "@/types/quran"
 import clsx from "clsx";
 import { amiriQuran } from '@/components/font';
 
 interface FullScreenVerseProps {
-  verse: Verse
+  verse: Ayah
   playbackState: PlaybackState
   progress: number
   currentIndex: number
@@ -46,13 +46,13 @@ export function FullScreenVerse({
           <div
             className={clsx(amiriQuran.className, `text-6xl md:text-7xl lg:text-8xl font-bold leading-relaxed mb-12 text-right animate-in slide-in-from-right-6 duration-700 ${theme === "dark" ? "text-white" : "text-gray-900"}`)}
           >
-            {verse.arabicText} ۝{toArabicIndic(verse.verseNumber)}
+            {verse.text} ۝{toArabicIndic(verse.ayah_number)}
           </div>
 
           <div
             className={`text-lg md:text-xl leading-relaxed text-right animate-in slide-in-from-right-8 duration-900 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}
           >
-            {verse.indonesianTranslation}
+            {verse.translations?.[0]?.text}
           </div>
         </div>
       </div>

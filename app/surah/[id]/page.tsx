@@ -7,12 +7,56 @@ import { SurahNavigation } from "@/components/quran/surah-navigation"
 import { SurahHeader } from "@/components/quran/surah-header"
 import { VerseCard } from "@/components/quran/verse-card"
 import { FullScreenVerse } from "@/components/quran/full-screen-verse"
-import { surahs } from "@/data/quran-data"
-import type { Verse, PlaybackState, Theme } from "@/types/quran"
+import { useSurahs, useSurah } from "@/hooks/use-surahs"
+import type { Ayah, PlaybackState, Theme, SurahDetail } from "@/types/quran"
+
+// Skeleton Components
+const SkeletonSurahNavigation = () => (
+  <div className="flex items-center justify-between mb-6 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse">
+    <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+    <div className="text-center">
+      <div className="w-32 h-6 bg-gray-300 dark:bg-gray-600 rounded mb-2 mx-auto"></div>
+      <div className="w-20 h-4 bg-gray-300 dark:bg-gray-600 rounded mx-auto"></div>
+    </div>
+    <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+  </div>
+)
+
+const SkeletonSurahHeader = () => (
+  <div className="text-center mb-8 animate-pulse">
+    <div className="w-48 h-8 bg-gray-300 dark:bg-gray-600 rounded mx-auto mb-2"></div>
+    <div className="w-32 h-6 bg-gray-300 dark:bg-gray-600 rounded mx-auto mb-4"></div>
+    <div className="w-24 h-10 bg-gray-300 dark:bg-gray-600 rounded mx-auto"></div>
+  </div>
+)
+
+const SkeletonVerseCard = () => (
+  <div className="p-6 rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-700 animate-pulse">
+    <div className="flex items-center justify-between mb-4">
+      <div className="w-16 h-6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+      <div className="flex space-x-2">
+        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+      </div>
+    </div>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="w-full h-6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div className="w-4/5 h-6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div className="w-3/4 h-6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+      </div>
+      <div className="space-y-2">
+        <div className="w-full h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div className="w-5/6 h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+      </div>
+    </div>
+  </div>
+)
 
 export default function QuranApp() {
   const [currentSurahIndex, setCurrentSurahIndex] = useState(0)
-  const [fullScreenVerse, setFullScreenVerse] = useState<Verse | null>(null)
+  const [fullScreenVerse, setFullScreenVerse] = useState<Ayah | null>(null)
   const [playbackState, setPlaybackState] = useState<PlaybackState>("stopped")
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0)
   const [progress, setProgress] = useState(0)
@@ -22,15 +66,20 @@ export default function QuranApp() {
   const [qori, setQori] = useState("mishary")
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  const currentSurah = surahs[currentSurahIndex]
-  const allVerses = surahs.flatMap((surah) => surah.verses)
+  // Use the custom hooks
+  const { data: surahs, isLoading: isSurahsLoading, error: surahsError } = useSurahs()
+  const currentSurahId = surahs?.[currentSurahIndex]?.id
+  const { data: currentSurah, isLoading: isSurahLoading, error: surahError } = useSurah(currentSurahId!)
+
+  // Get all verses directly from the current surah data
+  const allVerses = currentSurah?.ayahs || []
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark")
   }, [theme])
 
-  const getVerseDuration = (verse: Verse) => {
-    const baseLength = verse.arabicText.length
+  const getVerseDuration = (verse: Ayah) => {
+    const baseLength = verse.text.length
     return Math.max(3, Math.min(15, baseLength / 10))
   }
 
@@ -74,17 +123,18 @@ export default function QuranApp() {
     }
   }, [playbackState, fullScreenVerse, getCurrentVerseInAllVerses, allVerses])
 
-  const handlePlayVerse = (verse: Verse) => {
-    console.log("[v0] Playing verse:", verse.verseNumber)
+  const handlePlayVerse = (verse: Ayah) => {
+    console.log("[QuranApp] Playing verse:", verse.ayah_number)
     setFullScreenVerse(verse)
-    setCurrentVerseIndex(getCurrentVerseInAllVerses())
+    const verseIndex = allVerses.findIndex((v) => v.id === verse.id)
+    setCurrentVerseIndex(verseIndex)
     setPlaybackState("playing")
     setProgress(0)
   }
 
   const handlePlaySurah = () => {
-    if (currentSurah.verses.length > 0) {
-      handlePlayVerse(currentSurah.verses[0])
+    if (currentSurah?.ayahs && currentSurah.ayahs.length > 0) {
+      handlePlayVerse(currentSurah.ayahs[0])
     }
   }
 
@@ -118,14 +168,22 @@ export default function QuranApp() {
     }
   }
 
-  const handleCopyVerse = (verse: Verse) => {
-    const text = `${verse.arabicText}\n\n${verse.indonesianTranslation}`
-    navigator.clipboard.writeText(text)
-    console.log("[v0] Copied verse:", verse.verseNumber, text)
+  const handleCopyVerse = (verse: Ayah) => {
+    // Use the first translation if available, otherwise just the Arabic text
+    const translationText = verse.translations?.[0]?.text || ''
+    const text = translationText ? `${verse.text}\n\n${translationText}` : verse.text
+    
+    navigator.clipboard.writeText(text).then(() => {
+      console.log("[QuranApp] Copied verse:", verse.ayah_number, text)
+    }).catch(err => {
+      console.error("[QuranApp] Failed to copy verse:", err)
+    })
   }
 
-  const handleBookmarkVerse = (verse: Verse) => {
-    console.log("[v0] Bookmarked verse:", verse.verseNumber, verse.arabicText)
+  const handleBookmarkVerse = (verse: Ayah) => {
+    console.log("[QuranApp] Bookmarked verse:", verse.ayah_number, verse.text)
+    // Here you would implement actual bookmarking logic
+    // For example, save to localStorage or send to API
   }
 
   const handleThemeToggle = () => {
@@ -133,15 +191,78 @@ export default function QuranApp() {
   }
 
   const handleNextSurah = () => {
-    if (currentSurahIndex < surahs.length - 1) {
+    if (surahs && currentSurahIndex < surahs.length - 1) {
       setCurrentSurahIndex(currentSurahIndex + 1)
+      setFullScreenVerse(null) // Reset full screen verse when changing surah
+      setPlaybackState("stopped")
+      setProgress(0)
     }
   }
 
   const handlePrevSurah = () => {
     if (currentSurahIndex > 0) {
       setCurrentSurahIndex(currentSurahIndex - 1)
+      setFullScreenVerse(null) // Reset full screen verse when changing surah
+      setPlaybackState("stopped")
+      setProgress(0)
     }
+  }
+
+  // Error handling
+  if (surahsError) {
+    return (
+      <div className={`min-h-screen ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
+        <Header
+          theme={theme}
+          onThemeToggle={handleThemeToggle}
+          onSettingsClick={() => setSettingsOpen(true)}
+        />
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="text-center py-12">
+            <div className="text-red-500 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Failed to load Quran data</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Please check your connection and try again.
+            </p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (surahError) {
+    return (
+      <div className={`min-h-screen ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
+        <Header
+          theme={theme}
+          onThemeToggle={handleThemeToggle}
+          onSettingsClick={() => setSettingsOpen(true)}
+        />
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="text-center py-12">
+            <div className="text-red-500 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Failed to load Surah data</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Please try selecting a different surah or check your connection.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (fullScreenVerse) {
@@ -188,34 +309,56 @@ export default function QuranApp() {
       />
 
       <div className="max-w-4xl mx-auto p-4">
-        <SurahNavigation
-          currentSurah={currentSurah}
-          currentSurahIndex={currentSurahIndex}
-          totalSurahs={surahs.length}
-          theme={theme}
-          onPrevSurah={handlePrevSurah}
-          onNextSurah={handleNextSurah}
-        />
+        {isSurahsLoading ? (
+          <SkeletonSurahNavigation />
+        ) : surahs && currentSurah ? (
+          <SurahNavigation
+            currentSurah={currentSurah}
+            currentSurahIndex={currentSurahIndex}
+            totalSurahs={surahs.length}
+            theme={theme}
+            onPrevSurah={handlePrevSurah}
+            onNextSurah={handleNextSurah}
+          />
+        ) : null}
 
-        <SurahHeader
-          surah={currentSurah}
-          theme={theme}
-          onPlaySurah={handlePlaySurah}
-        />
+        {isSurahLoading ? (
+          <SkeletonSurahHeader />
+        ) : currentSurah ? (
+          <SurahHeader
+            surah={currentSurah}
+            theme={theme}
+            onPlaySurah={handlePlaySurah}
+          />
+        ) : null}
 
-<div className="space-y-8">
-          {currentSurah.verses.map((verse) => (
-            <VerseCard
-              key={verse.id}
-              verse={verse}
-              currentSurah={currentSurah}
-              theme={theme}
-              fontSize={fontSize}
-              onCopyVerse={handleCopyVerse}
-              onBookmarkVerse={handleBookmarkVerse}
-              onPlayVerse={handlePlayVerse}
-            />
-          ))}
+        <div className="space-y-8">
+          {isSurahLoading ? (
+            // Show skeleton verses while loading
+            Array.from({ length: 5 }).map((_, index) => (
+              <SkeletonVerseCard key={index} />
+            ))
+          ) : currentSurah?.ayahs ? (
+            currentSurah.ayahs.map((verse) => (
+              <VerseCard
+                key={verse.id}
+                verse={verse}
+                currentSurah={currentSurah}
+                theme={theme}
+                fontSize={fontSize}
+                onCopyVerse={handleCopyVerse}
+                onBookmarkVerse={handleBookmarkVerse}
+                onPlayVerse={handlePlayVerse}
+              />
+            ))
+          ) : (
+            // Show message when no verses are available
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">
+                No verses available for this surah.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,29 +1,18 @@
 import { MoreVertical, Copy, Bookmark, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Verse, Surah, Theme } from "@/types/quran"
+import { Ayah, Surah, Theme } from "@/types/quran"
 import clsx from "clsx";
 import { amiriQuran } from '@/components/font';
 
 interface VerseCardProps {
-  verse: Verse
+  verse: Ayah
   currentSurah: Surah
   theme: Theme
   fontSize: number
-  onCopyVerse: (verse: Verse) => void
-  onBookmarkVerse: (verse: Verse) => void
-  onPlayVerse: (verse: Verse) => void
-}
-
-const getTransliteration = (verse: Verse, surah: Surah) => {
-  if (verse.verseNumber === 1 && surah.number === 1) return "bismillāhir-raḥmānir-raḥīm"
-  if (verse.verseNumber === 2 && surah.number === 1) return "al-ḥamdu lillāhi rabbil-'ālamīn"
-  if (verse.verseNumber === 3 && surah.number === 1) return "ar-raḥmānir-raḥīm"
-  if (verse.verseNumber === 1 && surah.number === 112) return "qul huwallāhu aḥad"
-  if (verse.verseNumber === 2 && surah.number === 112) return "allāhuṣ-ṣamad"
-  if (verse.verseNumber === 3 && surah.number === 112) return "lam yalid wa lam yūlad"
-  if (verse.verseNumber === 4 && surah.number === 112) return "wa lam yakun lahū kufuwan aḥad"
-  return "transliteration"
+  onCopyVerse: (verse: Ayah) => void
+  onBookmarkVerse: (verse: Ayah) => void
+  onPlayVerse: (verse: Ayah) => void
 }
 
 const toArabicIndic = (num: number) => {
@@ -75,17 +64,17 @@ export function VerseCard({
         amiriQuran.className
       )}
     >
-      {verse.arabicText}  ۝{toArabicIndic(verse.verseNumber)}
+      {verse.text}  ۝{toArabicIndic(verse.ayah_number)}
     </div>
 
     {/* Transliteration */}
-    <div className="text-teal-600 text-sm">
-      {getTransliteration(verse, currentSurah)}
-    </div>
+    {/* <div className="text-teal-600 text-sm">
+      {verse.translations[0].text}
+    </div> */}
 
     {/* Translation */}
-    <div className={`leading-relaxed ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
-      {verse.indonesianTranslation}
+    <div className={`mt-2 leading-relaxed ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+      {verse.translations[0].text}
     </div>
   </div>
 </div>
