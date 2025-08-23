@@ -9,6 +9,7 @@ import { VerseCard } from "@/components/quran/verse-card"
 import { FullScreenVerse } from "@/components/quran/full-screen-verse"
 import { useSurahs, useSurah } from "@/hooks/use-surahs"
 import type { Ayah, PlaybackState, Theme, SurahDetail } from "@/types/quran"
+import { useParams, useRouter } from "next/navigation"
 
 // Skeleton Components
 const SkeletonSurahNavigation = () => (
@@ -55,6 +56,7 @@ const SkeletonVerseCard = () => (
 )
 
 export default function QuranApp() {
+  const { id } = useParams<{ id: string }>()
   const [currentSurahIndex, setCurrentSurahIndex] = useState(0)
   const [fullScreenVerse, setFullScreenVerse] = useState<Ayah | null>(null)
   const [playbackState, setPlaybackState] = useState<PlaybackState>("stopped")
@@ -68,14 +70,15 @@ export default function QuranApp() {
 
   // Use the custom hooks
   const { data: surahs, isLoading: isSurahsLoading, error: surahsError } = useSurahs()
-  const currentSurahId = surahs?.[currentSurahIndex]?.id
+  const currentSurahId = id
   const { data: currentSurah, isLoading: isSurahLoading, error: surahError } = useSurah(currentSurahId!)
-
+  const router = useRouter()
   // Get all verses directly from the current surah data
   const allVerses = currentSurah?.ayahs || []
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark")
+    setCurrentSurahIndex(parseInt(id))
   }, [theme])
 
   const getVerseDuration = (verse: Ayah) => {
@@ -191,9 +194,10 @@ export default function QuranApp() {
   }
 
   const handleNextSurah = () => {
+    console.log(currentSurahIndex)
     if (surahs && currentSurahIndex < surahs.length - 1) {
-      setCurrentSurahIndex(currentSurahIndex + 1)
-      setFullScreenVerse(null) // Reset full screen verse when changing surah
+      router.push(`/surah/${currentSurahIndex + 1}`)
+      setFullScreenVerse(null)
       setPlaybackState("stopped")
       setProgress(0)
     }
@@ -201,8 +205,8 @@ export default function QuranApp() {
 
   const handlePrevSurah = () => {
     if (currentSurahIndex > 0) {
-      setCurrentSurahIndex(currentSurahIndex - 1)
-      setFullScreenVerse(null) // Reset full screen verse when changing surah
+      router.push(`/surah/${currentSurahIndex - 1}`)
+      setFullScreenVerse(null)
       setPlaybackState("stopped")
       setProgress(0)
     }
