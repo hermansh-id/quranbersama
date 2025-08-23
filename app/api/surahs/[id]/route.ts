@@ -15,23 +15,35 @@ export async function GET(
       return NextResponse.json(JSON.parse(cachedSurah as string));
     }
 
-    const surah = db.query('SELECT * FROM surahs WHERE id = ?').get(id);
-    if (!surah) {
+    const { rows } = await db.execute({
+        sql: 'SELECT * FROM surahs WHERE id = ?',
+        args: [id]
+    });
+    if (!rows) {
       return NextResponse.json(
         { error: 'Surah not found' },
         { status: 404 }
       );
     }
 
-    const ayahs = db.query('SELECT * FROM ayahs WHERE surah_id = ? ORDER BY ayah_number').all(id);
+    const { rows: ayahs } = await db.execute({
+        sql: 'SELECT * FROM ayahs WHERE surah_id = ? ORDER BY ayah_number',
+        args: [id]
+    });
     if (!ayahs || ayahs.length === 0) {
-      return NextResponse.json({ ...surah, ayahs: [] });
+      return NextResponse.json({ ...rows, ayahs: [] });
     }
 
-    const ayahIds = (ayahs as {id: number}[]).map(a => a.id);
+    const ayahIds = ayahs.map(a => a.id);
 
-    const translations = db.query(`SELECT * FROM translations WHERE ayah_id IN (${ayahIds.join(',')})`).all();
-    const tafsirs = db.query(`SELECT * FROM tafsirs WHERE ayah_id IN (${ayahIds.join(',')})`).all();
+    const { rows: translations } = await db.execute({   
+        sql: `SELECT * FROM translations WHERE ayah_id IN (${ayahIds.map(() => '?').join(',')})`,
+        args: ayahIds
+    });
+    const { rows: tafsirs } = await db.execute({
+        sql: `SELECT * FROM tafsirs WHERE ayah_id IN (${ayahIds.map(() => '?').join(',')})`,
+        args: ayahIds
+    });
 
     const translationsMap = (translations as any[]).reduce((acc, t) => {
         if (!acc[t.ayah_id]) acc[t.ayah_id] = [];
@@ -51,9 +63,12 @@ export async function GET(
         tafsirs: tafsirsMap[ayah.id] || [],
     }));
 
-    const result = { ...surah, ayahs: ayahsWithDetails };
+    const result = { ...rows, ayahs: ayahsWithDetails };
 
-    await redis.set(cacheKey, JSON.stringify(result));
+    await redis.set(cacheKey, JSON.stringify(result), {
+        EX: 86400,
+        NX: true,
+    });
 
     return NextResponse.json(result);
   } catch (error) {
