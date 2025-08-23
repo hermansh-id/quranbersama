@@ -62,7 +62,7 @@ export default function TasbihPage() {
   const totalBeads = 33
   const beads = Array.from({ length: totalBeads }, (_, i) => i)
 
-  const handleIncrement = (e: React.MouseEvent) => {
+  const handleIncrement = () => {
     setCount((prev) => prev + 1)
     setIsAnimating(true)
 

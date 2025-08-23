@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Surah, Theme } from "@/types/quran"
 import clsx from "clsx";
-import { amiriQuran } from '@/app/layout';
+import { amiriQuran } from '@/components/font';
 
 interface SurahHeaderProps {
   surah: Surah

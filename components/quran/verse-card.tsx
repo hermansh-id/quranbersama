@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Verse, Surah, Theme } from "@/types/quran"
 import clsx from "clsx";
-import { amiriQuran } from '@/app/layout';
+import { amiriQuran } from '@/components/font';
 
 interface VerseCardProps {
   verse: Verse

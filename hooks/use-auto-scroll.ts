@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 
 export function useAutoScroll(currentVerse: number | null, isPlaying: boolean) {
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>()
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (currentVerse && isPlaying) {

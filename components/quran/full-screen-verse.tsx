@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, Play, Pause, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Verse, PlaybackState, Theme } from "@/types/quran"
 import clsx from "clsx";
-import { amiriQuran } from '@/app/layout';
+import { amiriQuran } from '@/components/font';
 
 interface FullScreenVerseProps {
   verse: Verse
