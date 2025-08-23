@@ -3,10 +3,10 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Play, Pause, Loader2 } from "lucide-react"
-import type { Verse, AudioState } from "@/types/quran"
+import type { Ayah, AudioState } from "@/types/quran"
 
 interface VerseCardProps {
-  verse: Verse
+  verse: Ayah
   audioState: AudioState
   isLoading: boolean
   onPlayPause: (verseId: number, audioUrl: string) => void
@@ -30,7 +30,7 @@ export function VerseCard({ verse, audioState, isLoading, onPlayPause }: VerseCa
         {/* Play Button */}
         <div className="flex flex-col items-center gap-2">
           <Button
-            onClick={() => onPlayPause(verse.id, verse.audioUrl || "")}
+            onClick={() => onPlayPause(verse.id, "")}
             variant="outline"
             size="icon"
             disabled={isLoadingThisVerse}
@@ -57,7 +57,7 @@ export function VerseCard({ verse, audioState, isLoading, onPlayPause }: VerseCa
                 : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400"
             }`}
           >
-            {verse.verseNumber}
+            {verse.ayah_number}
           </div>
 
           {isPlaying && <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-lg"></div>}
@@ -79,7 +79,7 @@ export function VerseCard({ verse, audioState, isLoading, onPlayPause }: VerseCa
               }}
               dir="rtl"
             >
-              {verse.arabicText}
+              {verse.text}
             </p>
           </div>
 
@@ -92,7 +92,7 @@ export function VerseCard({ verse, audioState, isLoading, onPlayPause }: VerseCa
                   : "text-base md:text-lg text-gray-600 dark:text-gray-400"
               }`}
             >
-              {verse.indonesianTranslation}
+              {verse.translations[0].text}
             </p>
           </div>
 
