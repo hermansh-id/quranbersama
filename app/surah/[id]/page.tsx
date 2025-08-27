@@ -243,7 +243,7 @@ export default function QuranApp() {
         onNextVerse={handleNextVerse}
         onPause={handlePause}
         onStop={handleStop}
-        audioRef={audioRef}
+        
       />
     );
   }
