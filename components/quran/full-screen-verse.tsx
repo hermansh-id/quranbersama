@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Play, Pause, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Ayah, PlaybackState, Theme } from "@/types/quran";
 import clsx from "clsx";
-import { amiriQuran } from '@/components/font';
+import { font_ayat } from '@/components/font';
 
 // Definisikan tipe props yang diperbarui
 interface FullScreenVerseProps {
@@ -67,15 +67,13 @@ export function FullScreenVerse({
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
           <div
             className={clsx(
-              amiriQuran.className,
+              font_ayat.className,
               "text-5xl md:text-7xl lg:text-8xl font-bold leading-relaxed text-right",
               isDark ? "text-white" : "text-gray-900"
             )}
             dir="rtl"
           >
-            {verse.text}
-            <span className="text-teal-500 text-4xl md:text-6xl mx-2">۝</span>
-            <span className="text-teal-500 text-4xl md:text-6xl">{toArabicIndic(verse.ayah_number)}</span>
+            {verse.text} <span className="mr-4">۝{toArabicIndic(verse.ayah_number)}</span>
           </div>
 
           <div

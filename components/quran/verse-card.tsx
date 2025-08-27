@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Ayah, Surah, Theme } from "@/types/quran"
 import clsx from "clsx";
-import { amiriQuran } from '@/components/font';
+import { font_ayat } from '@/components/font';
 
 interface VerseCardProps {
   verse: Ayah
@@ -61,10 +61,10 @@ export function VerseCard({
       className={clsx(
         `text-2xl md:text-3xl font-bold leading-relaxed mb-2 text-right`,
         theme === "dark" ? "text-white" : "text-gray-900",
-        amiriQuran.className
+        font_ayat.className
       )}
     >
-      {verse.text}  ۝{toArabicIndic(verse.ayah_number)}
+      {verse.text} <span className="mr-2"> ۝{toArabicIndic(verse.ayah_number)} </span>
     </div>
 
     {/* Transliteration */}
