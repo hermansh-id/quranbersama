@@ -2,8 +2,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Type, Globe, Volume2 } from "lucide-react"
-import { Theme } from "@/types/quran"
+import type { Theme } from "@/types/quran"
+import type { Qori } from "@/types/qori" // NEW: Import tipe Qori
 
+// MODIFIED: Perbarui props interface
 interface SettingsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -11,9 +13,11 @@ interface SettingsDialogProps {
   fontSize: number
   language: string
   qori: string
+  qoris: Qori[] // NEW: Terima array Qori
+  isQorisLoading: boolean // NEW: Terima status loading
   onFontSizeChange: (size: number) => void
   onLanguageChange: (language: string) => void
-  onQoriChange: (qori: string) => void
+  onQoriChange: (qoriId: string) => void // Perjelas bahwa ini adalah ID
 }
 
 export function SettingsDialog({
@@ -23,6 +27,8 @@ export function SettingsDialog({
   fontSize,
   language,
   qori,
+  qoris, // NEW
+  isQorisLoading, // NEW
   onFontSizeChange,
   onLanguageChange,
   onQoriChange
@@ -34,6 +40,7 @@ export function SettingsDialog({
           <DialogTitle>Pengaturan</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
+          {/* Bagian Font Size dan Bahasa (Tidak ada perubahan) */}
           <div>
             <label className="text-sm font-medium mb-2 block flex items-center gap-2">
               <Type className="w-4 h-4" />
@@ -62,11 +69,11 @@ export function SettingsDialog({
               <SelectContent>
                 <SelectItem value="indonesian">Bahasa Indonesia</SelectItem>
                 <SelectItem value="english">English</SelectItem>
-                <SelectItem value="arabic">العربية</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
+          {/* MODIFIED: Bagian Qori sekarang dinamis */}
           <div>
             <label className="text-sm font-medium mb-2 block flex items-center gap-2">
               <Volume2 className="w-4 h-4" />
@@ -74,13 +81,20 @@ export function SettingsDialog({
             </label>
             <Select value={qori} onValueChange={onQoriChange}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Pilih Qori..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="mishary">Mishary Rashid Alafasy</SelectItem>
-                <SelectItem value="sudais">Abdul Rahman Al-Sudais</SelectItem>
-                <SelectItem value="husary">Mahmoud Khalil Al-Husary</SelectItem>
-                <SelectItem value="minshawi">Mohamed Siddiq El-Minshawi</SelectItem>
+                {isQorisLoading ? (
+                  <SelectItem value="loading" disabled>
+                    Memuat data Qori...
+                  </SelectItem>
+                ) : (
+                  qoris.map((qoriItem) => (
+                    <SelectItem key={qoriItem.id} value={qoriItem.id}>
+                      {qoriItem.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

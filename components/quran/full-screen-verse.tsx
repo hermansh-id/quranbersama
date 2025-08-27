@@ -1,32 +1,36 @@
-import { ChevronLeft, ChevronRight, Play, Pause, Square } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Ayah, PlaybackState, Theme } from "@/types/quran"
+'use client';
+
+import { ChevronLeft, ChevronRight, Play, Pause, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { Ayah, PlaybackState, Theme } from "@/types/quran";
 import clsx from "clsx";
 import { amiriQuran } from '@/components/font';
 
+// Definisikan tipe props yang diperbarui
 interface FullScreenVerseProps {
-  verse: Ayah
-  playbackState: PlaybackState
-  progress: number
-  currentIndex: number
-  totalVerses: number
-  theme: Theme
-  isFirstVerse: boolean
-  isLastVerse: boolean
-  onPrevVerse: () => void
-  onNextVerse: () => void
-  onPause: () => void
-  onStop: () => void
+  verse: Ayah;
+  playbackState: PlaybackState;
+  isBuffering: boolean; // BARU: Terima status buffering
+  currentIndex: number;
+  totalVerses: number;
+  theme: Theme;
+  isFirstVerse: boolean;
+  isLastVerse: boolean;
+  onPrevVerse: () => void;
+  onNextVerse: () => void;
+  onPause: () => void;
+  onStop: () => void;
 }
 
+// Fungsi helper untuk mengubah angka menjadi digit Arab
 const toArabicIndic = (num: number) => {
   return num.toString().replace(/\d/g, (d: string) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
-}
+};
 
 export function FullScreenVerse({
   verse,
   playbackState,
-  progress,
+  isBuffering, // BARU
   currentIndex,
   totalVerses,
   theme,
@@ -37,82 +41,104 @@ export function FullScreenVerse({
   onPause,
   onStop
 }: FullScreenVerseProps) {
+  const isDark = theme === "dark";
+
   return (
     <div
-      className={`min-h-screen flex flex-col ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}
+      className={clsx(
+        "min-h-screen flex flex-col relative transition-colors duration-300",
+        isDark ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+      )}
     >
-      <div className="flex-1 flex flex-col items-end justify-center p-8 text-right">
-        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+      {/* BARU: Tombol Tutup (sebelumnya Stop) di pojok kanan atas */}
+      <div className="absolute top-6 right-6 z-20">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onStop}
+          className="rounded-full w-12 h-12 bg-gray-500/10 hover:bg-gray-500/20"
+        >
+          <X className="w-6 h-6" />
+        </Button>
+      </div>
+
+      {/* Konten Ayat */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
           <div
-            className={clsx(amiriQuran.className, `text-6xl md:text-7xl lg:text-8xl font-bold leading-relaxed mb-12 text-right animate-in slide-in-from-right-6 duration-700 ${theme === "dark" ? "text-white" : "text-gray-900"}`)}
+            className={clsx(
+              amiriQuran.className,
+              "text-5xl md:text-7xl lg:text-8xl font-bold leading-relaxed text-right",
+              isDark ? "text-white" : "text-gray-900"
+            )}
+            dir="rtl"
           >
-            {verse.text} ۝{toArabicIndic(verse.ayah_number)}
+            {verse.text}
+            <span className="text-teal-500 text-4xl md:text-6xl mx-2">۝</span>
+            <span className="text-teal-500 text-4xl md:text-6xl">{toArabicIndic(verse.ayah_number)}</span>
           </div>
 
           <div
-            className={`text-lg md:text-xl leading-relaxed text-right animate-in slide-in-from-right-8 duration-900 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}
+            className={clsx(
+              "text-base md:text-xl leading-relaxed max-w-3xl",
+              isDark ? "text-gray-300" : "text-gray-600"
+            )}
           >
             {verse.translations?.[0]?.text}
           </div>
         </div>
       </div>
 
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-        <div
-          className={`flex items-center gap-4 px-6 py-4 rounded-full shadow-lg backdrop-blur-sm border animate-in slide-in-from-bottom-4 duration-500 ${
-            theme === "dark" ? "bg-gray-800/90 border-gray-700" : "bg-white/90 border-gray-200"
-          }`}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onPrevVerse}
-            disabled={isFirstVerse}
-            className="rounded-full w-12 h-12 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onPause}
-            className="rounded-full w-14 h-14 bg-teal-100 hover:bg-teal-200 dark:bg-teal-900 dark:hover:bg-teal-800"
-          >
-            {playbackState === "playing" ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onStop}
-            className="rounded-full w-12 h-12 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800"
-          >
-            <Square className="w-4 h-4" />
-          </Button>
-
-          <div className={`text-sm font-medium px-3 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+      {/* MODIFIKASI: Kontrol Pemutar di Bawah */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-10 w-full px-4">
+        <div className="flex flex-col items-center animate-in slide-in-from-bottom-5 duration-500">
+          <div className={clsx("text-sm mb-4", isDark ? "text-gray-400" : "text-gray-500")}>
             {currentIndex + 1} / {totalVerses}
           </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onNextVerse}
-            disabled={isLastVerse}
-            className="rounded-full w-12 h-12 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </Button>
-        </div>
-
-        <div className={`mt-3 w-full ${theme === "dark" ? "bg-gray-700" : "bg-gray-200"} rounded-full h-1`}>
           <div
-            className="bg-teal-500 h-1 rounded-full transition-all duration-100 ease-linear"
-            style={{ width: `${progress}%` }}
-          />
+            className={clsx(
+              "flex items-center justify-center gap-6 px-6 py-3 rounded-full shadow-lg backdrop-blur-md border",
+              isDark ? "bg-gray-800/80 border-gray-700" : "bg-white/80 border-gray-200"
+            )}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onPrevVerse}
+              disabled={isFirstVerse}
+              className="rounded-full w-12 h-12 disabled:opacity-30"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </Button>
+
+            <Button
+              variant="default"
+              size="icon"
+              onClick={onPause}
+              className="rounded-full w-16 h-16 bg-teal-500 hover:bg-teal-600 text-white shadow-lg"
+            >
+              {playbackState === "playing" ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 fill-current" />}
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onNextVerse}
+              disabled={isLastVerse}
+              className="rounded-full w-12 h-12 disabled:opacity-30"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* BARU: Overlay Buffering/Loading */}
+      {isBuffering && (
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-30 transition-opacity duration-300 animate-in fade-in">
+          <div className="w-12 h-12 border-4 border-white/50 border-t-white rounded-full animate-spin"></div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
