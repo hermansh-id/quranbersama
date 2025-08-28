@@ -64,7 +64,7 @@ export function FullScreenVerse({
 
       {/* Konten Ayat */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
+        <div className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-500">
           <div
             className={clsx(
               font_ayat.className,
@@ -78,7 +78,7 @@ export function FullScreenVerse({
 
           <div
             className={clsx(
-              "text-base md:text-xl leading-relaxed max-w-3xl",
+              "text-base md:text-xl leading-relaxed text-right mt-4",
               isDark ? "text-gray-300" : "text-gray-600"
             )}
           >

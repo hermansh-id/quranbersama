@@ -9,6 +9,8 @@ import Link from "next/link"
 import { useSurahs } from '@/hooks/use-surahs'
 import { Surah } from '@/types/quran'
 import { useRouter } from 'next/navigation'
+import { clsx } from "clsx"
+import { font_ayat } from "@/components/font"
 
 const features = [
   {
@@ -139,7 +141,7 @@ export default function QuranPage() {
               <BookOpen className="w-4 h-4 text-white" />
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-600 bg-clip-text text-transparent">
-              QuranOnline
+              Quran Bersama
             </h1>
           </div>
 
@@ -219,7 +221,7 @@ export default function QuranPage() {
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
-                        <p className="text-lg font-arabic text-slate-700 dark:text-slate-300 leading-tight" dir="rtl">
+                        <p className={clsx(`text-lg font-arabic text-slate-700 dark:text-slate-300 leading-tight`, font_ayat.className)} dir="rtl">
                           {surah.name}
                         </p>
                       </div>
